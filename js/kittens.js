@@ -3,56 +3,70 @@ var GAME_WIDTH = 375;
 var GAME_HEIGHT = 500;
 
 var ENEMY_WIDTH = 75;
-var ENEMY_HEIGHT = 156;
-var MAX_ENEMIES = 3;
+var ENEMY_HEIGHT = 75;
+var MAX_ENEMIES = 1;
 
 var PLAYER_WIDTH = 75;
-var PLAYER_HEIGHT = 54;
+var PLAYER_HEIGHT = 75;
 
 // These two constants keep us from using "magic numbers" in our code
 var LEFT_ARROW_CODE = 37;
 var RIGHT_ARROW_CODE = 39;
+var UP_ARROW_CODE = 38;
+var DOWN_ARROW_CODE = 40;
+var SPACE_BAR = 32;
 
 // These two constants allow us to DRY
 var MOVE_LEFT = 'left';
 var MOVE_RIGHT = 'right';
+var MOVE_UP = "up";
+var MOVE_DOWN = 'down';
 
 // Preload game images
 var images = {};
-['enemy.png', 'stars.png', 'player.png'].forEach(imgName => {
+['enemy.png', 'stars.png', 'player.png','cat2.png','banana.png'].forEach(imgName => {
     var img = document.createElement('img');
     img.src = 'images/' + imgName;
     images[imgName] = img;
 });
 
 
-
+function loopImage(arr){
+    
+}
 
 
 // This section is where you will be doing most of your coding
-class Enemy {
+class Entity {
+    render(ctx) {
+        ctx.drawImage(this.sprite, this.x, this.y);
+    }
+
+}
+
+class Enemy extends Entity {
     constructor(xPos) {
+        super('enemy')
         this.x = xPos;
         this.y = -ENEMY_HEIGHT;
-        this.sprite = images['enemy.png'];
+        this.sprite = images['banana.png'];
 
         // Each enemy should have a different speed
-        this.speed = Math.random() / 2 + 0.25;
-    }
+        this.speed = Math.random() / 4 + 0.25;
+    } 
 
     update(timeDiff) {
         this.y = this.y + timeDiff * this.speed;
     }
 
-    render(ctx) {
-        ctx.drawImage(this.sprite, this.x, this.y);
-    }
+    
 }
 
-class Player {
+class Player extends Entity {
     constructor() {
+        super('player')
         this.x = 2 * PLAYER_WIDTH;
-        this.y = GAME_HEIGHT - PLAYER_HEIGHT - 10;
+        this.y = GAME_HEIGHT - PLAYER_HEIGHT;
         this.sprite = images['player.png'];
     }
 
@@ -64,11 +78,16 @@ class Player {
         else if (direction === MOVE_RIGHT && this.x < GAME_WIDTH - PLAYER_WIDTH) {
             this.x = this.x + PLAYER_WIDTH;
         }
+        else if (direction === MOVE_UP && this.y > 0) {
+            this.y = this.y - PLAYER_HEIGHT;
+        } 
+        else if (direction === MOVE_DOWN && this.y < GAME_HEIGHT - PLAYER_HEIGHT) {
+            this.y = this.y + PLAYER_HEIGHT;
+         }
+        
     }
 
-    render(ctx) {
-        ctx.drawImage(this.sprite, this.x, this.y);
-    }
+   
     
 }
 
@@ -142,6 +161,15 @@ class Engine {
             else if (e.keyCode === RIGHT_ARROW_CODE) {
                 this.player.move(MOVE_RIGHT);
             }
+            else if (e.keyCode === UP_ARROW_CODE) {
+                this.player.move(MOVE_UP);
+            }
+            else if (e.keyCode === DOWN_ARROW_CODE) {
+                this.player.move(MOVE_DOWN);
+            }else if (e.keyCode === SPACE_BAR) {
+                requestAnimationFrame(this.gameLoop);
+    
+            }
         });
 
         this.gameLoop();
@@ -184,10 +212,18 @@ class Engine {
         // Check if player is dead
         if (this.isPlayerDead()) {
             // If they are dead, then it's game over!
-            this.ctx.font = 'bold 30px Impact';
+            this.ctx.font = 'bold 45px Impact';
             this.ctx.fillStyle = '#ffffff';
-            this.ctx.fillText(this.score + ' GAME OVER', 5, 30);
+            this.ctx.fillText("SCORE: " + this.score,90, 150);
+            this.ctx.fillText("GAME OVER", 90, 250);
+            this.ctx.fillText("PRESS SPACE BAR", 45,400);
+            
+          
+                
+
         }
+    
+
         else {
             // If player is not dead, then draw the score
             this.ctx.font = 'bold 30px Impact';
@@ -199,21 +235,26 @@ class Engine {
             requestAnimationFrame(this.gameLoop);
         }
 
-    
     }
 
     isPlayerDead() {
         var enemyHit = (enemy) => {
-            if (enemy.x === this.player.x && enemy.y >300){
+            if (enemy.x === this.player.x 
+                && (enemy.y + ENEMY_HEIGHT) > (this.player.y )
+                && (enemy.y + ENEMY_HEIGHT) < (this.player.y + PLAYER_HEIGHT))
+                {
                 console.log("HIT!");
                 return true;
             }
+            
         };
         // TODO: fix this function!
         return this.enemies.some(enemyHit)
-    } 
+    }
+   
 } 
  
+
 
 
 
@@ -223,3 +264,10 @@ class Engine {
 // This section will start the game
 var gameEngine = new Engine(document.getElementById('app'));
 gameEngine.start();
+
+// 1 - have multiple enemies
+// 2- good enemies give points, not kill
+// 3- center game
+//4- background image on game and surrounding
+//5- second level - faster more enemies at once- based on time without dying
+// if you past all levels - "thats the cats"
