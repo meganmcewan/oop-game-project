@@ -69,6 +69,7 @@ class Player {
     render(ctx) {
         ctx.drawImage(this.sprite, this.x, this.y);
     }
+    
 }
 
 
@@ -109,7 +110,7 @@ class Engine {
             this.enemies = [];
         }
 
-        while (this.enemies.filter(e => !!e).length < MAX_ENEMIES) {
+        while (this.enemies.filter(e => !!e).length <= MAX_ENEMIES) {
             this.addEnemy();
         }
     }
@@ -120,11 +121,12 @@ class Engine {
 
         var enemySpot;
         // Keep looping until we find a free enemy spot at random
-        while (!enemySpot || this.enemies[enemySpot]) {
+        while (enemySpot === undefined || this.enemies[enemySpot]) {
             enemySpot = Math.floor(Math.random() * enemySpots);
         }
-
         this.enemies[enemySpot] = new Enemy(enemySpot * ENEMY_WIDTH);
+        console.log(this.enemies[enemySpot]);
+        
     }
 
     // This method kicks off the game
@@ -196,13 +198,23 @@ class Engine {
             this.lastFrame = Date.now();
             requestAnimationFrame(this.gameLoop);
         }
+
+    
     }
 
     isPlayerDead() {
+        var enemyHit = (enemy) => {
+            if (enemy.x === this.player.x && enemy.y >300){
+                console.log("HIT!");
+                return true;
+            }
+        };
         // TODO: fix this function!
-        return false;
-    }
-}
+        return this.enemies.some(enemyHit)
+    } 
+} 
+ 
+
 
 
 
