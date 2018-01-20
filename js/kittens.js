@@ -4,7 +4,7 @@ var GAME_HEIGHT = 667;
 
 var ENEMY_WIDTH = 125;
 var ENEMY_HEIGHT = 125;
-var MAX_ENEMIES = 3;
+var MAX_ENEMIES = 2;
 
 var FRIEND_WIDTH = 125;
 var FRIEND_HEIGHT = 125;
@@ -50,7 +50,7 @@ class Entity {
 
 class Enemy extends Entity {
     constructor(xPos) {
-        super('enemy')
+        super();
         this.x = xPos;
         this.y = -ENEMY_HEIGHT;
         this.sprite = images['drop.png']
@@ -66,23 +66,23 @@ class Enemy extends Entity {
     
 }
 
-// class Friend extends Entity {
-//     constructor(xPos) {
-//         super('friend');
-//         this.x = xPos;
-//         this.y = -FRIEND_HEIGHT;
-//         this.sprite = images['sun.png']
+class Friend extends Entity {
+    constructor(xPos) {
+        super();
+        this.x = xPos;
+        this.y = -FRIEND_HEIGHT;
+        this.sprite = images['sun.png']
             
-//         // Each enemy should have a different speed
-//         this.speed = Math.random() / 2 + 0.45;
-//         }
+        // Each enemy should have a different speed
+        this.speed = Math.random() / 4 + 0.45;
+        }
 
-//     update(timeDiff) {
-//         this.y = this.y + timeDiff * this.speed;
-//     }
+    update(timeDiff) {
+        this.y = this.y + timeDiff * this.speed;
+    }
 
     
-// }
+}
 
 class Player extends Entity {
     constructor() {
@@ -132,7 +132,7 @@ class Engine {
 
         // set up friends
 
-        // this.setupFriends();
+       this.setupFriends();
 
         // Setup the <canvas> element where we will be drawing
         var canvas = document.createElement('canvas');
@@ -175,29 +175,29 @@ class Engine {
     }
     // FRIEND SECTION - same as enemy 
 
-    // setupFriends() {
-    //     if (!this.friends) {
-    //         this.friends = [];
-    //     }
+    setupFriends() {
+        if (!this.friends) {
+            this.friends = [];
+        }
 
-    //     while (this.friends.filter(e => !!e).length <= MAX_FRIENDS) {
-    //         this.addFriend();
-    //     }
-    // }
+        while (this.friends.filter(e => !!e).length < MAX_FRIENDS) {
+            this.addFriend();
+        }
+    }
 
-    // // This method finds a random spot where there is no enemy, and puts one in there
-    // addFriend() {
-    //     var friendSpots = GAME_WIDTH / FRIEND_WIDTH;
+    
+    addFriend() {
+        var friendSpots = GAME_WIDTH / FRIEND_WIDTH;
 
-    //     var friendSpot;
-    //     // Keep looping until we find a free enemy spot at random
-    //     while (friendSpot === undefined || this.friends[friendSpot]) {
-    //         friendSpot = Math.floor(Math.random() * friendsSpots);
-    //     }
-    //     this.friends[friendSpot] = new Friend(friendSpot * FRIEND_WIDTH);
-    //     console.log(this.friends[friendSpot]);
+        var friendSpot;
+
+        while (friendSpot === true || this.friends[friendSpot]) {
+            friendSpot = Math.floor(Math.random() * friendSpots);
+        }
+        this.friends[friendSpot] = new Friend(friendSpot * FRIEND_WIDTH);
+     
         
-    // }
+    }
 
     // This method kicks off the game
     start() {
@@ -246,12 +246,12 @@ class Engine {
 
         // Call update on all enemies
         this.enemies.forEach(enemy => enemy.update(timeDiff));
-//        this.friends.forEach(friend => friend.update(timeDiff));
+        this.friends.forEach(friend => friend.update(timeDiff));
 
         // Draw everything!
         this.ctx.drawImage(images['desert.png'], 0, 0); // draw the star bg
         this.enemies.forEach(enemy => enemy.render(this.ctx)); // draw the enemies
-//       this.friends.forEach(friend => friend.render(this.ctx)); // draw the friends
+        this.friends.forEach(friend => friend.render(this.ctx)); // draw the friends
         this.player.render(this.ctx); // draw the player
 
         // Check if any enemies should die
@@ -264,12 +264,12 @@ class Engine {
 
         // repeat for friends
 
-        // this.friends.forEach((friend, friendIdx) => {
-        //     if (friend.y > GAME_HEIGHT) {
-        //         delete this.friends[friendIdx];
-        //     }
-        // });
-        // this.setupFriends();
+        this.friends.forEach((friend, friendIdx) => {
+            if (friend.y > GAME_HEIGHT) {
+                delete this.friends[friendIdx];
+            }
+        });
+        this.setupFriends();
 
         // Check if player is dead
         if (this.isPlayerDead()) {
