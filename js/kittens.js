@@ -1,4 +1,4 @@
-// This sectin contains some game constants. It is not super interesting
+// This section contains some game constants. It is not super interesting
 var GAME_WIDTH = 1000;
 var GAME_HEIGHT = 667;
 
@@ -43,7 +43,6 @@ class Entity {
     render(ctx) {
         ctx.drawImage(this.sprite, this.x, this.y);
     }
-
 }
 
 
@@ -61,9 +60,7 @@ class Enemy extends Entity {
 
     update(timeDiff) {
         this.y = this.y + timeDiff * this.speed;
-    }
-
-    
+    } 
 }
 
 class Friend extends Entity {
@@ -73,15 +70,13 @@ class Friend extends Entity {
         this.y = -FRIEND_HEIGHT;
         this.sprite = images['sun.png']
             
-        // Each enemy should have a different speed
+        // Each friend should have a different speed
         this.speed = Math.random() / 4 + 0.45;
         }
 
     update(timeDiff) {
         this.y = this.y + timeDiff * this.speed;
-    }
-
-    
+    } 
 }
 
 class Player extends Entity {
@@ -105,12 +100,8 @@ class Player extends Entity {
         } 
         else if (direction === MOVE_DOWN && this.y < GAME_HEIGHT - PLAYER_HEIGHT) {
             this.y = this.y + PLAYER_HEIGHT;
-         }
-        
+         }  
     }
-
-   
-    
 }
 
 
@@ -170,9 +161,9 @@ class Engine {
             enemySpot = Math.floor(Math.random() * enemySpots);
         }
         this.enemies[enemySpot] = new Enemy(enemySpot * ENEMY_WIDTH);
-        console.log(this.enemies[enemySpot]);
-        
+        console.log(this.enemies[enemySpot]);      
     }
+
     // FRIEND SECTION - same as enemy 
 
     setupFriends() {
@@ -194,9 +185,7 @@ class Engine {
         while (friendSpot === true || this.friends[friendSpot]) {
             friendSpot = Math.floor(Math.random() * friendSpots);
         }
-        this.friends[friendSpot] = new Friend(friendSpot * FRIEND_WIDTH);
-     
-        
+        this.friends[friendSpot] = new Friend(friendSpot * FRIEND_WIDTH);   
     }
 
     // This method kicks off the game
@@ -281,12 +270,44 @@ class Engine {
             this.ctx.fillText("G A M E   O V E R", 140, 300);
             this.ctx.font = 'lighter 30px Helvetica';
             this.ctx.fillText("PRESS SPACE BAR", 375,400);
+            this.score = 0;
+        }
+
+// If player finds a friend then add 5000 to the score
+        else if (this.isFriendHit()){
             
-          
-                
+            this.ctx.font = 'bold 75px Helvetica';
+            this.ctx.fillStyle = '#FDFDD9';
+            this.ctx.fillText("B O N U S", 345, 300);
+            this.score = this.score + 2000;
+            this.ctx.font = 'bold 40px Helvetica';
+            this.ctx.fillText(this.score, 5, 30)
+
+            // Set the time marker and redraw
+            this.lastFrame = Date.now();
+            requestAnimationFrame(this.gameLoop);
 
         }
-    
+
+ // If a player scores 20000 points they reach level 2
+
+        else if (this.isNextLevel()){
+            this.ctx.font = 'lighter 30px Helvetica';
+            this.ctx.fillStyle = '#FFE1E1';
+            this.ctx.fillText("SCORE: " + this.score,400, 175);
+            this.ctx.font = 'bold 75px Helvetica';
+            this.ctx.fillText("NEXT LEVEL", 305, 300);
+            this.ctx.font = 'lighter 30px Helvetica';
+            this.ctx.fillText("PRESS SPACE BAR", 375,400);
+            this.score = 100001;
+            
+            
+            
+            // Set the time marker and redraw
+            // this.lastFrame = Date.now();
+            // requestAnimationFrame(this.gameLoop);
+
+        }
 
         else {
             // If player is not dead, then draw the score
@@ -297,25 +318,43 @@ class Engine {
             // Set the time marker and redraw
             this.lastFrame = Date.now();
             requestAnimationFrame(this.gameLoop);
-        }
-
+        }        
     }
+
 
     isPlayerDead() {
         var enemyHit = (enemy) => {
             if (enemy.x === this.player.x 
-                && (enemy.y + ENEMY_HEIGHT) > (this.player.y )
+                && (enemy.y + ENEMY_HEIGHT) > (this.player.y)
                 && (enemy.y + ENEMY_HEIGHT) < (this.player.y + PLAYER_HEIGHT))
                 {
                 console.log("HIT!");
                 return true;
-            }
-            
+            }          
         };
-        // TODO: fix this function!
         return this.enemies.some(enemyHit)
     }
-   
+
+    isFriendHit() {
+        var friendHit = (friend) => {
+            if (friend.x === this.player.x 
+                && (friend.y + FRIEND_HEIGHT) > (this.player.y)
+                && (friend.y + FRIEND_HEIGHT) < (this.player.y + PLAYER_HEIGHT))
+                {
+                console.log("BONUS!");
+                return true;
+            }          
+        };
+        return this.friends.some(friendHit)
+    }
+
+    isNextLevel(score) {
+        if (this.score >= 50000 && this.score <=100000){
+            return true
+
+    }
+    
+    }
 } 
  
 
@@ -329,9 +368,10 @@ class Engine {
 var gameEngine = new Engine(document.getElementById('app'));
 gameEngine.start();
 
-// 1 - have multiple enemies
-// 2- friends give points, not kill
+// 1 - have multiple enemies - DONE
+// 2- friends give points, not kill - DONE
 // 3- center game
 //4- background image on game and surrounding
 //5- second level - faster more enemies at once- based on time without dying
-// if you past all levels - "thats the cats"
+// 6- background music
+
