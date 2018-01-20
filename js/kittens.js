@@ -1,13 +1,13 @@
 // This sectin contains some game constants. It is not super interesting
-var GAME_WIDTH = 375;
-var GAME_HEIGHT = 500;
+var GAME_WIDTH = 1000;
+var GAME_HEIGHT = 667;
 
-var ENEMY_WIDTH = 75;
-var ENEMY_HEIGHT = 75;
-var MAX_ENEMIES = 1;
+var ENEMY_WIDTH = 125;
+var ENEMY_HEIGHT = 125;
+var MAX_ENEMIES = 3;
 
-var PLAYER_WIDTH = 75;
-var PLAYER_HEIGHT = 75;
+var PLAYER_WIDTH = 125;
+var PLAYER_HEIGHT = 200;
 
 // These two constants keep us from using "magic numbers" in our code
 var LEFT_ARROW_CODE = 37;
@@ -24,16 +24,12 @@ var MOVE_DOWN = 'down';
 
 // Preload game images
 var images = {};
-['enemy.png', 'stars.png', 'player.png','cat2.png','banana.png'].forEach(imgName => {
+['desert.png','cactus.png','sun.png','drop.png'].forEach(imgName => {
     var img = document.createElement('img');
     img.src = 'images/' + imgName;
     images[imgName] = img;
 });
 
-
-function loopImage(arr){
-    
-}
 
 
 // This section is where you will be doing most of your coding
@@ -49,7 +45,8 @@ class Enemy extends Entity {
         super('enemy')
         this.x = xPos;
         this.y = -ENEMY_HEIGHT;
-        this.sprite = images['banana.png'];
+        this.sprite = images['drop.png'];
+        
 
         // Each enemy should have a different speed
         this.speed = Math.random() / 4 + 0.25;
@@ -67,7 +64,7 @@ class Player extends Entity {
         super('player')
         this.x = 2 * PLAYER_WIDTH;
         this.y = GAME_HEIGHT - PLAYER_HEIGHT;
-        this.sprite = images['player.png'];
+        this.sprite = images['cactus.png'];
     }
 
     // This method is called by the game engine when left/right arrows are pressed
@@ -197,7 +194,7 @@ class Engine {
         this.enemies.forEach(enemy => enemy.update(timeDiff));
 
         // Draw everything!
-        this.ctx.drawImage(images['stars.png'], 0, 0); // draw the star bg
+        this.ctx.drawImage(images['desert.png'], 0, 0); // draw the star bg
         this.enemies.forEach(enemy => enemy.render(this.ctx)); // draw the enemies
         this.player.render(this.ctx); // draw the player
 
@@ -212,11 +209,13 @@ class Engine {
         // Check if player is dead
         if (this.isPlayerDead()) {
             // If they are dead, then it's game over!
-            this.ctx.font = 'bold 45px Impact';
+            this.ctx.font = 'lighter 30px Helvetica';
             this.ctx.fillStyle = '#ffffff';
-            this.ctx.fillText("SCORE: " + this.score,90, 150);
-            this.ctx.fillText("GAME OVER", 90, 250);
-            this.ctx.fillText("PRESS SPACE BAR", 45,400);
+            this.ctx.fillText("SCORE: " + this.score,400, 175);
+            this.ctx.font = 'bold 85px Helvetica';
+            this.ctx.fillText("G A M E   O V E R", 140, 300);
+            this.ctx.font = 'lighter 30px Helvetica';
+            this.ctx.fillText("PRESS SPACE BAR", 375,400);
             
           
                 
@@ -226,7 +225,7 @@ class Engine {
 
         else {
             // If player is not dead, then draw the score
-            this.ctx.font = 'bold 30px Impact';
+            this.ctx.font = '40px Helvetica';
             this.ctx.fillStyle = '#ffffff';
             this.ctx.fillText(this.score, 5, 30);
 
