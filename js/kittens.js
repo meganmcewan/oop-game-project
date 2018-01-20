@@ -6,6 +6,12 @@ var ENEMY_WIDTH = 125;
 var ENEMY_HEIGHT = 125;
 var MAX_ENEMIES = 3;
 
+var FRIEND_WIDTH = 125;
+var FRIEND_HEIGHT = 125;
+var MAX_FRIENDS = 1;
+
+
+
 var PLAYER_WIDTH = 125;
 var PLAYER_HEIGHT = 200;
 
@@ -23,8 +29,8 @@ var MOVE_UP = "up";
 var MOVE_DOWN = 'down';
 
 // Preload game images
-var images = {};
-['desert.png','cactus.png','sun.png','drop.png'].forEach(imgName => {
+var images = ['desert.png','cactus.png','sun.png','drop.png'];
+    images.forEach(imgName => {
     var img = document.createElement('img');
     img.src = 'images/' + imgName;
     images[imgName] = img;
@@ -40,17 +46,18 @@ class Entity {
 
 }
 
+
+
 class Enemy extends Entity {
     constructor(xPos) {
         super('enemy')
         this.x = xPos;
         this.y = -ENEMY_HEIGHT;
-        this.sprite = images['drop.png'];
-        
-
+        this.sprite = images['drop.png']
+            
         // Each enemy should have a different speed
         this.speed = Math.random() / 4 + 0.25;
-    } 
+        }
 
     update(timeDiff) {
         this.y = this.y + timeDiff * this.speed;
@@ -58,6 +65,24 @@ class Enemy extends Entity {
 
     
 }
+
+// class Friend extends Entity {
+//     constructor(xPos) {
+//         super('friend');
+//         this.x = xPos;
+//         this.y = -FRIEND_HEIGHT;
+//         this.sprite = images['sun.png']
+            
+//         // Each enemy should have a different speed
+//         this.speed = Math.random() / 2 + 0.45;
+//         }
+
+//     update(timeDiff) {
+//         this.y = this.y + timeDiff * this.speed;
+//     }
+
+    
+// }
 
 class Player extends Entity {
     constructor() {
@@ -105,6 +130,10 @@ class Engine {
         // Setup enemies, making sure there are always three
         this.setupEnemies();
 
+        // set up friends
+
+        // this.setupFriends();
+
         // Setup the <canvas> element where we will be drawing
         var canvas = document.createElement('canvas');
         canvas.width = GAME_WIDTH;
@@ -126,7 +155,7 @@ class Engine {
             this.enemies = [];
         }
 
-        while (this.enemies.filter(e => !!e).length <= MAX_ENEMIES) {
+        while (this.enemies.filter(e => !!e).length < MAX_ENEMIES) {
             this.addEnemy();
         }
     }
@@ -144,6 +173,31 @@ class Engine {
         console.log(this.enemies[enemySpot]);
         
     }
+    // FRIEND SECTION - same as enemy 
+
+    // setupFriends() {
+    //     if (!this.friends) {
+    //         this.friends = [];
+    //     }
+
+    //     while (this.friends.filter(e => !!e).length <= MAX_FRIENDS) {
+    //         this.addFriend();
+    //     }
+    // }
+
+    // // This method finds a random spot where there is no enemy, and puts one in there
+    // addFriend() {
+    //     var friendSpots = GAME_WIDTH / FRIEND_WIDTH;
+
+    //     var friendSpot;
+    //     // Keep looping until we find a free enemy spot at random
+    //     while (friendSpot === undefined || this.friends[friendSpot]) {
+    //         friendSpot = Math.floor(Math.random() * friendsSpots);
+    //     }
+    //     this.friends[friendSpot] = new Friend(friendSpot * FRIEND_WIDTH);
+    //     console.log(this.friends[friendSpot]);
+        
+    // }
 
     // This method kicks off the game
     start() {
@@ -192,10 +246,12 @@ class Engine {
 
         // Call update on all enemies
         this.enemies.forEach(enemy => enemy.update(timeDiff));
+//        this.friends.forEach(friend => friend.update(timeDiff));
 
         // Draw everything!
         this.ctx.drawImage(images['desert.png'], 0, 0); // draw the star bg
         this.enemies.forEach(enemy => enemy.render(this.ctx)); // draw the enemies
+//       this.friends.forEach(friend => friend.render(this.ctx)); // draw the friends
         this.player.render(this.ctx); // draw the player
 
         // Check if any enemies should die
@@ -205,6 +261,15 @@ class Engine {
             }
         });
         this.setupEnemies();
+
+        // repeat for friends
+
+        // this.friends.forEach((friend, friendIdx) => {
+        //     if (friend.y > GAME_HEIGHT) {
+        //         delete this.friends[friendIdx];
+        //     }
+        // });
+        // this.setupFriends();
 
         // Check if player is dead
         if (this.isPlayerDead()) {
@@ -265,7 +330,7 @@ var gameEngine = new Engine(document.getElementById('app'));
 gameEngine.start();
 
 // 1 - have multiple enemies
-// 2- good enemies give points, not kill
+// 2- friends give points, not kill
 // 3- center game
 //4- background image on game and surrounding
 //5- second level - faster more enemies at once- based on time without dying
