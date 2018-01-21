@@ -13,6 +13,7 @@ var MAX_FRIENDS = 1;
 var BOSS_WIDTH = 333;
 var BOSS_HEIGHT = 348;
 var MAX_BOSSES = 3;
+var NUM_BOSSES = 0;
 
 
 
@@ -95,7 +96,7 @@ class Boss extends Entity {
         this.sprite = images['storm.png']
             
         // Each Boss should have a different speed
-        this.speed = Math.random() / 4 + 0.45;
+        this.speed = Math.random() /6 + 0.25;
         }
 
     update(timeDiff) {
@@ -171,8 +172,7 @@ class Engine {
         } 
             while (this.enemies.filter(e => !!e).length < MAX_ENEMIES) {
                 this.addEnemy();
-            }
-              
+            }             
     }
 
     // This method finds a random spot where there is no enemy, and puts one in there
@@ -213,35 +213,34 @@ class Engine {
     setupBosses() {
         if (!this.bosses) {
             this.bosses = [];}
-        if (this.enterBossLevel()){
-            while (this.bosses.filter(e => !!e).length < MAX_BOSSES ) {
+        if (NUM_BOSSES > 0){
+    
+        while (this.bosses.filter(e => !!e).length < MAX_BOSSES ) {
                 this.addBoss();
             }
-        }    
+        }
+          
 
        
     }
 
     addBoss() {
         
-
-        
         var bossSpots = GAME_WIDTH / BOSS_WIDTH;
         var bossSpot;
-
+    
         while (bossSpot === true || this.bosses[bossSpot]) {
             bossSpot = Math.floor(Math.random() * bossSpots);
+        }this.bosses[bossSpot] = new Boss (bossSpot * BOSS_WIDTH); 
+        
+    
         }
-        this.bosses[bossSpot] = new Boss (bossSpot * BOSS_WIDTH);   
-
-}
 
 
 
     // This method kicks off the game
     start() {
         this.score = 0;
-       // MAX_BOSSES=0;
         this.lastFrame = Date.now();
         
 
@@ -330,7 +329,7 @@ class Engine {
 
 
         // Check if player is dead
-        if (this.isPlayerDead()) {
+        if (this.isPlayerDead()|| this.isBossHit()) {
             // If they are dead, then it's game over!
             this.ctx.font = 'lighter 30px Helvetica';
             this.ctx.fillStyle = '#ffffff';
@@ -341,6 +340,7 @@ class Engine {
             this.ctx.fillText("PRESS SPACE BAR", 375,400);
             this.score = 0;
             MAX_ENEMIES = 2;
+            NUM_BOSSES = 0;
             sound.pause();
             
         }
@@ -397,7 +397,7 @@ class Engine {
             this.ctx.font = 'lighter 30px Helvetica';
             this.ctx.fillText("PRESS SPACE BAR", 375,400);
             this.score = 550001;
-            MAX_BOSSES = 3;
+            NUM_BOSSES = 3;
             MAX_ENEMIES = 0;    
         }
 
@@ -411,6 +411,7 @@ class Engine {
             this.ctx.fillText("PRESS SPACE BAR", 375,400);
             this.score = 0;
             MAX_ENEMIES = 2;
+            MAX_BOSSES = 0;
             sound.pause();
         }
     
@@ -452,6 +453,18 @@ class Engine {
             }          
         };
         return this.friends.some(friendHit)
+    }
+    isBossHit() {
+        var bossHit = (boss) => {
+            if (boss.x === this.player.x 
+                && (boss.y + BOSS_HEIGHT) > (this.player.y)
+                && (boss.y + BOSS_HEIGHT) < (this.player.y + BOSS_HEIGHT))
+                {
+                console.log("BOSS HIT!");
+                return true;
+            }          
+        };
+        return this.bosses.some(bossHit)
     }
 
     passLevelOne(score) {
