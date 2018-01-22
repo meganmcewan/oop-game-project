@@ -11,8 +11,8 @@ var FRIEND_HEIGHT = 125;
 var MAX_FRIENDS = 1;
 
 var BOSS_WIDTH = 333;
-var BOSS_HEIGHT = 348;
-var MAX_BOSSES = 3;
+var BOSS_HEIGHT = 363;
+var MAX_BOSSES = 2;
 var NUM_BOSSES = 0;
 
 
@@ -26,6 +26,7 @@ var RIGHT_ARROW_CODE = 39;
 var UP_ARROW_CODE = 38;
 var DOWN_ARROW_CODE = 40;
 var SPACE_BAR = 32;
+var ENTER_CODE = 13;
 
 // These two constants allow us to DRY
 var MOVE_LEFT = 'left';
@@ -43,7 +44,8 @@ var images = ['desert.png','cactus.png','sun.png','drop.png','storm.png'];
 
 // Load sound
 
-var sound = document.getElementById('sound');
+var mainSong = document.getElementById('mainSong');
+var bossSong = document.getElementById('bossSong');
 
 
 
@@ -94,14 +96,15 @@ class Boss extends Entity {
         this.x = xPos;
         this.y = -BOSS_HEIGHT;
         this.sprite = images['storm.png']
-            
         // Each Boss should have a different speed
-        this.speed = Math.random() /6 + 0.25;
+        this.speed = Math.random() /4 + 0.5;
         }
+       
 
     update(timeDiff) {
         this.y = this.y + timeDiff * this.speed;
     } 
+   
 }
 
 class Player extends Entity {
@@ -148,7 +151,6 @@ class Engine {
         this.setupFriends();
         this.setupBosses();
 
-    
 
         // Setup the <canvas> element where we will be drawing
         var canvas = document.createElement('canvas');
@@ -160,6 +162,7 @@ class Engine {
 
         // Since gameLoop will be called out of context, bind it once here.
         this.gameLoop = this.gameLoop.bind(this);
+        console.log(this.player);
     }
 
     /*
@@ -184,7 +187,7 @@ class Engine {
             enemySpot = Math.floor(Math.random() * enemySpots);
         }
         this.enemies[enemySpot] = new Enemy(enemySpot * ENEMY_WIDTH);
-        console.log(this.enemies[enemySpot]);      
+          
     }
 
     // FRIEND SECTION - same as enemy 
@@ -218,6 +221,7 @@ class Engine {
         while (this.bosses.filter(e => !!e).length < MAX_BOSSES ) {
                 this.addBoss();
             }
+       
         }
           
 
@@ -232,6 +236,7 @@ class Engine {
         while (bossSpot === true || this.bosses[bossSpot]) {
             bossSpot = Math.floor(Math.random() * bossSpots);
         }this.bosses[bossSpot] = new Boss (bossSpot * BOSS_WIDTH); 
+        console.log(this.bosses[bossSpot]);
         
     
         }
@@ -260,14 +265,23 @@ class Engine {
                 this.player.move(MOVE_DOWN);
             }else if (e.keyCode === SPACE_BAR) {
                 requestAnimationFrame(this.gameLoop);
+                mainSong.play();
     
+            }else if (e.keyCode === ENTER_CODE){
+                requestAnimationFrame(this.gameLoop);
+                bossSong.play();
             }
+            
+
+            console.log(this.player);
         });
-
+       
         this.gameLoop();
-        sound.play();
+    //    mainSong.play(); 
+        
+        
     }
-
+   
     /*
     This is the core of the game engine. The `gameLoop` function gets called ~60 times per second
     During each execution of the function, we will update the positions of all game entities
@@ -325,11 +339,14 @@ class Engine {
         });
         this.setupBosses();
 
-
+        if (NUM_BOSSES>0){
+            mainSong.pause()
+            bossSong.play()
+        }else {mainSong.play()};
 
 
         // Check if player is dead
-        if (this.isPlayerDead()|| this.isBossHit()) {
+        if (this.isPlayerDead() || this.isBossHit()) {
             // If they are dead, then it's game over!
             this.ctx.font = 'lighter 30px Helvetica';
             this.ctx.fillStyle = '#ffffff';
@@ -341,91 +358,92 @@ class Engine {
             this.score = 0;
             MAX_ENEMIES = 2;
             NUM_BOSSES = 0;
-            sound.pause();
+            
             
         }
+            // If player finds a friend then add 2000 to the score
+            else if (this.isFriendHit()){
+                
+                this.ctx.font = 'bold 75px Helvetica';
+                this.ctx.fillStyle = '#FDFDD9';
+                this.ctx.fillText("BONUS", 345, 300);
+                this.score = this.score + 2000;
+                this.ctx.font = 'bold 40px Helvetica';
+                this.ctx.fillText(this.score, 5, 30)
 
-// If player finds a friend then add 2000 to the score
-        else if (this.isFriendHit()){
+                // Set the time marker and redraw
+                this.lastFrame = Date.now();
+                requestAnimationFrame(this.gameLoop);
+
+            }
+
+    // If a player scores enough points they reach the next level
+
+            else if (this.passLevelOne()){
+                this.ctx.font = 'lighter 30px Helvetica';
+                this.ctx.fillStyle = '#FFE1E1';
+                this.ctx.fillText("SCORE: " + this.score,400, 175);
+                this.ctx.font = 'bold 75px Helvetica';
+                this.ctx.fillText("LEVEL TWO", 305, 300);
+                this.ctx.font = 'lighter 30px Helvetica';
+                this.ctx.fillText("PRESS SPACE BAR", 375,400);
+                this.score = 100001;
+                MAX_ENEMIES = 3;
+                enemy.speed = enemy.speed * 3;
+                    
+            }
+            else if (this.passLevelTwo()){
+                this.ctx.font = 'lighter 30px Helvetica';
+                this.ctx.fillStyle = '#D2FDEF';
+                this.ctx.fillText("SCORE: " + this.score,400, 175);
+                this.ctx.font = 'bold 75px Helvetica';
+                this.ctx.fillText("LEVEL THREE", 250, 300);
+                this.ctx.font = 'lighter 30px Helvetica';
+                this.ctx.fillText("PRESS SPACE BAR", 375,400);
+                this.score = 350001;
+                MAX_ENEMIES = 4;    
+            }
+
+            else if (this.enterBossLevel()){
+                this.ctx.font = 'lighter 30px Helvetica';
+                this.ctx.fillStyle = '#FC9967';
+                this.ctx.fillText("SCORE: " + this.score,400, 175);
+                this.ctx.font = 'bold 85px Helvetica';
+                this.ctx.fillText("The BAWSS", 250, 300);
+                this.ctx.font = 'lighter 30px Helvetica';
+                this.ctx.fillText("PRESS ENTER", 375,400);
+                this.score = 500001;
+                NUM_BOSSES = 2;
+                MAX_ENEMIES = 0;    
             
-            this.ctx.font = 'bold 75px Helvetica';
-            this.ctx.fillStyle = '#FDFDD9';
-            this.ctx.fillText("BONUS", 345, 300);
-            this.score = this.score + 2000;
-            this.ctx.font = 'bold 40px Helvetica';
-            this.ctx.fillText(this.score, 5, 30)
+            }
 
-            // Set the time marker and redraw
-            this.lastFrame = Date.now();
-            requestAnimationFrame(this.gameLoop);
+            else if (this.winGame()){
+                this.ctx.font = 'lighter 30px Helvetica';
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillText("SCORE: " + this.score,400, 175);
+                this.ctx.font = 'bold 100px Helvetica';
+                this.ctx.fillText("Y O U   W I N !!", 225, 300);
+                this.ctx.font = 'lighter 30px Helvetica';
+                this.ctx.fillText("PRESS SPACE BAR", 375,400);
+                this.score = 0;
+                MAX_ENEMIES = 2;
+                MAX_BOSSES = 0;
+                bossSong.pause();
+            }
+        
 
-        }
+            else {
+                // If player is not dead, then draw the score
+                this.ctx.font = '40px Helvetica';
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillText(this.score, 5, 30);
 
- // If a player scores enough points they reach the next level
-
-        else if (this.passLevelOne()){
-            this.ctx.font = 'lighter 30px Helvetica';
-            this.ctx.fillStyle = '#FFE1E1';
-            this.ctx.fillText("SCORE: " + this.score,400, 175);
-            this.ctx.font = 'bold 75px Helvetica';
-            this.ctx.fillText("LEVEL TWO", 305, 300);
-            this.ctx.font = 'lighter 30px Helvetica';
-            this.ctx.fillText("PRESS SPACE BAR", 375,400);
-            this.score = 100001;
-            MAX_ENEMIES = 2;
-            enemy.speed = enemy.speed * 3;
-                   
-        }
-        else if (this.passLevelTwo()){
-            this.ctx.font = 'lighter 30px Helvetica';
-            this.ctx.fillStyle = '#D2FDEF';
-            this.ctx.fillText("SCORE: " + this.score,400, 175);
-            this.ctx.font = 'bold 75px Helvetica';
-            this.ctx.fillText("LEVEL THREE", 250, 300);
-            this.ctx.font = 'lighter 30px Helvetica';
-            this.ctx.fillText("PRESS SPACE BAR", 375,400);
-            this.score = 350001;
-            MAX_ENEMIES = 2;    
-        }
-
-        else if (this.enterBossLevel()){
-            this.ctx.font = 'lighter 30px Helvetica';
-            this.ctx.fillStyle = '#FC9967';
-            this.ctx.fillText("SCORE: " + this.score,400, 175);
-            this.ctx.font = 'bold 85px Helvetica';
-            this.ctx.fillText("The BAWSS", 250, 300);
-            this.ctx.font = 'lighter 30px Helvetica';
-            this.ctx.fillText("PRESS SPACE BAR", 375,400);
-            this.score = 550001;
-            NUM_BOSSES = 3;
-            MAX_ENEMIES = 0;    
-        }
-
-        else if (this.winGame()){
-            this.ctx.font = 'lighter 30px Helvetica';
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.fillText("SCORE: " + this.score,400, 175);
-            this.ctx.font = 'bold 100px Helvetica';
-            this.ctx.fillText("Y O U   W I N !!", 250, 300);
-            this.ctx.font = 'lighter 30px Helvetica';
-            this.ctx.fillText("PRESS SPACE BAR", 375,400);
-            this.score = 0;
-            MAX_ENEMIES = 2;
-            MAX_BOSSES = 0;
-            sound.pause();
-        }
-    
-
-        else {
-            // If player is not dead, then draw the score
-            this.ctx.font = '40px Helvetica';
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.fillText(this.score, 5, 30);
-
-            // Set the time marker and redraw
-            this.lastFrame = Date.now();
-            requestAnimationFrame(this.gameLoop);
-        }        
+                // Set the time marker and redraw
+                this.lastFrame = Date.now();
+                requestAnimationFrame(this.gameLoop);
+            }   
+            
     }
 
 
@@ -448,7 +466,6 @@ class Engine {
                 && (friend.y + FRIEND_HEIGHT) > (this.player.y)
                 && (friend.y + FRIEND_HEIGHT) < (this.player.y + PLAYER_HEIGHT))
                 {
-                console.log("BONUS!");
                 return true;
             }          
         };
@@ -456,13 +473,25 @@ class Engine {
     }
     isBossHit() {
         var bossHit = (boss) => {
-            if (boss.x === this.player.x 
-                && (boss.y + BOSS_HEIGHT) > (this.player.y)
-                && (boss.y + BOSS_HEIGHT) < (this.player.y + BOSS_HEIGHT))
+            if ((boss.x === 0) && (this.player.x < 333) 
+                && (boss.y + BOSS_HEIGHT -75) > (this.player.y)
+                && (boss.y + BOSS_HEIGHT-75) < (this.player.y + PLAYER_HEIGHT))
                 {
                 console.log("BOSS HIT!");
                 return true;
-            }          
+            } 
+            else if ((boss.x === 333) && (this.player.x >= 333) && (this.player.x <666)
+                && (boss.y + BOSS_HEIGHT-75) > (this.player.y)
+                && (boss.y + BOSS_HEIGHT-75) < (this.player.y + PLAYER_HEIGHT)){
+                console.log('BOSS HIT');
+                return true;
+            } 
+            else if ((boss.x === 666) && (this.player.x > 665)
+                && (boss.y + BOSS_HEIGHT-75) > (this.player.y)
+                && (boss.y + BOSS_HEIGHT-75) < (this.player.y + PLAYER_HEIGHT)) {
+                console.log("BOSS HIT!");
+                return true;
+            }      
         };
         return this.bosses.some(bossHit)
     }
@@ -480,7 +509,8 @@ class Engine {
     }
 
     enterBossLevel(score){
-        if (this.score >= 500000 && this.score < 550000){
+        if (this.score >= 450000 && this.score < 500000){
+            mainSong.pause()
             return true;
         }
     }
@@ -507,6 +537,8 @@ gameEngine.start();
 // 2- friends give points, not kill - DONE
 // 3- center game
 //4- background image on game and surrounding
-//5- second level - faster more enemies at once- based on time without dying
+//5- second level - faster more enemies at once- based on time without dying - DONE
 // 6- background music
+// 7 - make boss
+
 

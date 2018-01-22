@@ -1,11 +1,15 @@
 
-#canvas {
-    padding-left: 0;
-    padding-right: 0;
+.wrapper {
     margin-left: auto;
     margin-right: auto;
-    margin-top: auto;
+    margin-top: 50px;
     margin-bottom: auto;
     display: flex;
+    justify-content: center;
     align-items: center;
+}
+
+body {
+    background-image: url(file:///Users/meganmcewan/Documents/decode/week2/oop-game-project/style/IMG_0830.jpeg);
+    background-size: cover;
 }
